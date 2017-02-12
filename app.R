@@ -32,6 +32,17 @@ server <- function(input, output) {
     time = factor(c("Lunch","Dinner","Lunch","Dinner"), levels=c("Lunch","Dinner")),
     total_bill = c(13.53, 16.81, 16.24, 17.42)
   )
+  
+  transportationData <- data.frame (
+    year = c(2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016),
+    wl_yCardsSold = c(303000, NA, NA, NA, 336000, NA, 363000,	501000, 582000,	650000, NA, NA),
+    wl_yCardsPrice = c(417, 417, 485, 485, 485, 485, 485, 365, 365, 365, 365, 365),
+    car_kmPerDay = c(36.06,	36.06,	34.7,	34.7,	35.09,	35.09,	32.82,	32.82,	30.23,	30.23, NA, 30),
+    car_fuelPerL = c(0.83,	0.89,	0.93,	1.09,	0.90,	1.06,	1.28,	1.38,	1.35,	1.32,	1.22, NA),
+    car_kmPerL = c(),
+    na = c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA)
+  )
+  
   output$mainPlot <- renderPlot({
     ggplot(data=mainData, aes(x=time, y=total_bill, group=sex)) +
       geom_line() +
