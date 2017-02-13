@@ -6,14 +6,16 @@ lang_ger <- c("Vergleich von Benutzung öffentlicher Verkehrsmittel vs. PKW in W
               "Preis in Euro", "Liter pro 100 Kilometer",
               'Art der Kosten', 'Kosten im Jahr',
               'Kosten am Tag', 'Öffentlich',
-              'Auto', 'Art des Transports')
+              'Auto', 'Art des Transports',
+              'Preis: ', "Jahr: ")
 lang_eng <- c("Comparison of car usage vs. public services in Vienna", "Mobility check",
               "Choose language", "Detailed look in this selection",
               "Plot of transportation details", "Year",
               "Price in Euro", "Liters per 100 Kilometers",
               "Types of Cost", "Cost per Year",
               "Cost per day", "Public",
-              "Car", "Type of transport")
+              "Car", "Type of transport",
+              "Price: ", "Year: ")
 lang <- lang_ger
 
 transportationData <- data.frame (
@@ -48,6 +50,7 @@ server <- function(input, output) {
   # when brushed: show additional plots: decreasing price, increasing fuel price
   # add: total saved emissions / total saved money
   
+  # create the data used in the main plot and transform according to selection input
   mainPlotData <- reactive({
     publicMultiplier = 1
     carMultiplier = 1
@@ -64,6 +67,31 @@ server <- function(input, output) {
     
   })
   
+  output$selectYear <- renderText({
+    yearFrom <- input$mainBrush$xmin
+    yearTo <- input$mainBrush$xmax
+    if(is.null(yearFrom)) {
+      yearFrom <- 2005
+      yearTo <- 2016
+    }
+    paste0("Years selected: ", round(yearFrom), " to ", round(yearTo))
+  })
+  
+  output$hoverYear <- renderText({
+    val <- input$plot_hover$x
+    if(is.null(val)) {
+      val <- 0
+    }
+    paste0(lang[16], round(val))
+  })
+  
+  output$hoverPrice <- renderText({
+     val <- input$plot_hover$y
+     if(is.null(val)) {
+       val <- 0
+     }
+     paste0(lang[15], round(val, digits = 2), " Euro")
+  })
 
   output$mainPlot <- renderPlot({
     m <- mainPlotData()
@@ -91,7 +119,7 @@ ui <- fluidPage(
   fluidRow(
     column( width = 3,
             #selectInput('langSel', lang[3], languageSelection, selected = "Deutsch"),
-            sliderInput(inputId = 'LitersPerKm', label = lang[8], min = 5, max = 10, value = 8, step = 1 ),
+            sliderInput(inputId = 'LitersPerKm', label = lang[8], min = 2, max = 10, value = 8, step = 0.5 ),
             selectInput(inputId = 'costType', label = lang[9], choices = c(lang[10], lang[11])),
             helpText(""),
             helpText("")
@@ -99,14 +127,31 @@ ui <- fluidPage(
     
     # Show a plot of the generated distribution
     column( width = 6,
-            plotOutput("mainPlot"),
+            plotOutput(outputId = "mainPlot",
+                       brush = brushOpts(
+                          id = "mainBrush",
+                          delayType = 'debounce',
+                          delay = 200,
+                          direction = 'x'
+                       ),
+                       hover = hoverOpts(
+                         id = "plot_hover",
+                         delay = 200,
+                         delayType = 'throttle',
+                         nullOutside = FALSE
+                       )
+            ),     
             helpText(lang[5])
     ),
     
-    column( width = 1,
+    column( width = 3,
     #todo: include here selection plots
-    helpText(lang[4])
+    helpText(lang[4]),
+    textOutput("hoverYear"),
+    textOutput("hoverPrice"),
+    textOutput("selectYear")
     ),
+    
     position = "right",
     fluid = TRUE
   )
