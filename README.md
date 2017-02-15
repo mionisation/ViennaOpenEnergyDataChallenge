@@ -4,6 +4,9 @@ This is an interactive Visualization for comparing the costs of using public tra
 
 It features two plots, one for the cost per person and one for the total amount of persons using public or private transportation. You can specify if the cost should be per year or day. You can also specify custom values of car drivers and average fuel consumption of cars. Otherwise, average year fuel consumption and total licensed cards in Austria will be used.
 
+Check it out here in live mode:
+https://mionisation.shinyapps.io/ViennaOpenEnergyDataChallenge/
+
 ## Calculations (in brackets: total cost)
 * Calculations of public transport:
   Year card price \* (Total tickets sold)
