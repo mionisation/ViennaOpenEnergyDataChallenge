@@ -13,12 +13,14 @@ lang_ger <- c("Vergleich der Benutzung öffentlicher Verkehrsmittel vs. PKW in W
               'Preis: ', "Jahr: ",
               'Selektierte Jahre: ', "Transport pro Person",
               "Oder: Anzahl der Autofahrer in Wien angeben:", "Verwende totale PKW-Zulassungen in Wien",
-              "Verwende Durchschnittsverbrauch", " Millionen Euro",
+              "Verwende Durchschnittsverbrauch", " Mill. Euro",
               "Preis in Millionen Euro", "Preis Einzelfahrschein",
-              "Preis Benzin/Diesel", "Gespartes Geld: ",
+              "Preis Benzin/Diesel pro L", "Gespartes Geld: ",
               "Gesamteinsparungen: ", "Verwende gefahrene Durchschnittsstrecken",
-              "Oder: Gefahrene Tages-Km angeben")
-              #29
+              "Oder: Gefahrene Tages-Km angeben", "Wenn die Autofahrer mit den Öffis gefahren wären, hätte man mit dem gesparten Geld...",
+              "... errichten können"," große Windkraftanlagen ",
+              " Photovoltaikanlagen mit 20-kWp "," Kleinwasserkraftwerke (Neue Donau) ")
+              #34
 lang_eng <- c("Comparison of car usage vs. public services in Vienna", "Mobility check",
               "Choose language", "Detailed look in this selection",
               "Total transportation cost", "Year",
@@ -31,11 +33,13 @@ lang_eng <- c("Comparison of car usage vs. public services in Vienna", "Mobility
               "Or: Specify car drivers in Vienna:", "Use total amount of licensed cars in Vienna",
               "Use average consumption of all cars", " million Euro",
               "Price in million Euro", "Price Single trip",
-              "Avg. price petrol/diesel", "Saved money per person: ",
+              "Avg. price petrol/diesel per l", "Saved money per person: ",
               "Total savings: ", "Use average driven km ",
-              "Or: Specify daily driven kilometers")
+              "Or: Specify daily driven kilometers", "You could build...",
+              "with the saved money")
 lang <- lang_ger
 selectionStatus <- 0
+iconsize <- 36
 
 # data from the energy report and other sources specified in the README.
 # Missing values were estimated via linear and loess regression
@@ -110,6 +114,21 @@ server <- function(input, output) {
     
   })
   
+  ## start comparison output text
+  output$comparisonWind <- renderText({
+    numberWindFarms <- round(getSavingsMoney()/3.5)
+    paste0(numberWindFarms, lang[32])
+  })
+  output$comparisonSun <- renderText({
+    numberSunFarms <- round(getSavingsMoney()/0.02)
+    paste0(numberSunFarms, lang[33])
+  })
+  output$comparisonWater <- renderText({
+    numberWaterFarms <- round(getSavingsMoney()/1.8)
+    paste0(numberWaterFarms, lang[34])
+  })
+  ## end comparison output text
+  
   ##start text output for hovering / brushing
   output$selectYear <- renderText({
     yearFrom <- input$mainBrush$xmin
@@ -157,10 +176,9 @@ server <- function(input, output) {
     }
     paste0(lang[15], round(val, digits = 2), lang[22])
   })
-  #todo: 1) css border, adjust sizes
-  # 2) add icons for energy facilities
+  #todo:
   # 3) add icons from data people
-  output$savedMoneyTotal <- renderText({
+  getSavingsMoney <- reactive({
     val <- mainPlotData()
     if(is.null(input$sideBrush$xmin)){
       val <- 0
@@ -172,7 +190,11 @@ server <- function(input, output) {
       val <- val[iF:iT,] 
       val <- sum((val$carPriceTotal - val$publicPriceTotaTCalculatedByCarUsers))
     }
-    paste0(lang[27], round(val, digits = 2), lang[22])
+    val
+  })
+  
+  output$savedMoneyTotal <- renderText({
+    paste0(lang[27], round(getSavingsMoney(), digits = 2), lang[22])
   })
   output$savedMoney <- renderText({
     val <- mainPlotData()
@@ -407,6 +429,22 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                 div(class="brushInformation",textOutput("savedMoneyTotal"))
         )
 
+    ),
+    fluidRow(
+      helpText(lang[30]),
+      fluidRow(column( width = 1,
+      HTML(paste0('<svg style="width:',iconsize,'px;height:',iconsize,'px" viewBox="0 0 24 24">
+        <path fill="#2c3e50" d="M4,10A1,1 0 0,1 3,9A1,1 0 0,1 4,8H12A2,2 0 0,0 14,6A2,2 0 0,0 12,4C11.45,4 10.95,4.22 10.59,4.59C10.2,5 9.56,5 9.17,4.59C8.78,4.2 8.78,3.56 9.17,3.17C9.9,2.45 10.9,2 12,2A4,4 0 0,1 16,6A4,4 0 0,1 12,10H4M19,12A1,1 0 0,0 20,11A1,1 0 0,0 19,10C18.72,10 18.47,10.11 18.29,10.29C17.9,10.68 17.27,10.68 16.88,10.29C16.5,9.9 16.5,9.27 16.88,8.88C17.42,8.34 18.17,8 19,8A3,3 0 0,1 22,11A3,3 0 0,1 19,14H5A1,1 0 0,1 4,13A1,1 0 0,1 5,12H19M18,18H4A1,1 0 0,1 3,17A1,1 0 0,1 4,16H18A3,3 0 0,1 21,19A3,3 0 0,1 18,22C17.17,22 16.42,21.66 15.88,21.12C15.5,20.73 15.5,20.1 15.88,19.71C16.27,19.32 16.9,19.32 17.29,19.71C17.47,19.89 17.72,20 18,20A1,1 0 0,0 19,19A1,1 0 0,0 18,18Z" />
+        </svg> '))),column( width = 11,textOutput("comparisonWind"))),
+      fluidRow(column( width = 1,
+      HTML(paste0('<svg style="width:',iconsize,'px;height:',iconsize,'px" viewBox="0 0 24 24">
+        <path fill="#2c3e50" d="M3.55,18.54L4.96,19.95L6.76,18.16L5.34,16.74M11,22.45C11.32,22.45 13,22.45 13,22.45V19.5H11M12,5.5A6,6 0 0,0 6,11.5A6,6 0 0,0 12,17.5A6,6 0 0,0 18,11.5C18,8.18 15.31,5.5 12,5.5M20,12.5H23V10.5H20M17.24,18.16L19.04,19.95L20.45,18.54L18.66,16.74M20.45,4.46L19.04,3.05L17.24,4.84L18.66,6.26M13,0.55H11V3.5H13M4,10.5H1V12.5H4M6.76,4.84L4.96,3.05L3.55,4.46L5.34,6.26L6.76,4.84Z" />
+        </svg>'))),column( width = 11,textOutput("comparisonSun"))),
+      fluidRow(column( width = 1,
+                       HTML(paste0('<svg style="width:',iconsize,'px;height:',iconsize,'px" viewBox="0 0 24 24">
+        <path fill="#2c3e50" d="M12,20A6,6 0 0,1 6,14C6,10 12,3.25 12,3.25C12,3.25 18,10 18,14A6,6 0 0,1 12,20Z" />
+        </svg>'))),column( width = 11,textOutput("comparisonWater"))),
+      helpText(lang[31])
     )
     ),
     
