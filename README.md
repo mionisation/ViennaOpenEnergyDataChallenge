@@ -39,9 +39,24 @@ and bootstrap theme "Flatly" https://rstudio.github.io/shinythemes/
 
 
 ## German version:
-The data  
-brainstorm: vielleicht: preise, nachfrage, entwicklung nachhaltiger energie auf nächsten jahre über regression projizieren und darstellen? mit einer einfachen textausgabe für die ergebnisse: "nach der analyse nach braucht man X mehr kraftwerke als in der momentanen entwicklung möglich"
 
+Die zwei oberen Hauptgraphen bilden den Vergleich der Kosten von Öffibenutzung und PKW-nutzung. Man kann in der linken Kontrolleiste einstellen, ob jährliche oder tägliche Kosten angezeigt werden sollen.
+
+Berechnung für den linken Graph ist:
+
+*Öffikosten = "jahreskarten preis"
+
+*PKW-kosten = "tägliche PKW km" * "Treibstoffpreis" * "Verbrauch"
+
+Für den rechten Graph werden Öffikosten mit "verkauften Jahrestickets" und PKW-Kosten mit "Anzahl der Autos" multipliziert.
+
+Die Default Einstellung ist, dass für "tägliche PKW km", "Verbrauch" und "Anzahl der Autos" die statistischen Daten der entsprechenden Jahre verwendet werden. Man kann diese Werte aber verändern, um einen Einblick dafür zu bekommen, ab wann sich eine Jahreskarte rentieren würde und um verschiedene Szenarios auszuprobieren.
+
+Man kann in den zwei Hauptgraphen auch eine Region auswählen (Mausklick und ziehen).
+
+Dann wird in den linken unteren Graphen die Entwicklung der Ticket- und Treibstoffpreise angezeigt.
+
+Rechts wird der gesamte Betrag angezeigt, um den der Autotransport den öffentlichen Verkehr übersteigt, und welche Art von umweltfreundlichen Energieerzeugungsanlagen, die man (ungefähr) damit bauen könnte.
 
 Missing values between time points were estimated via linear and LOESS regression
 
