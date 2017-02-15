@@ -182,57 +182,58 @@ server <- function(input, output) {
       scale_colour_solarized("blue")
   })
   
-  #supporting plot for fuel price
-  output$fuelPrice <- renderPlot({
-    m <- mainPlotData()
-    ggplot() +
-      geom_line(data=transportationData, aes(x = year, y = wl_ticketPrice), size=.75 ) +
-      geom_point(data=transportationData, aes(x = year, y = wl_ticketPrice), size=3, fill="white") +
-      xlab(lang[6]) +
-      ylab(lang[24]) + 
-      theme_solarized_2(light = TRUE) +
-      scale_colour_solarized("blue")
-  })
-  
-  
-  #supporting plot for ticket price
-  output$ticketPrice <- renderPlot({
+  getBrushedSubset <- reactive({
     yF = 2005
     yT = 2016
     if(is.null(input$sideBrush$xmin)) {
       if(!is.null(input$mainBrush$xmin)) {
-        yF = round(input$mainBrush$xmin)
+        yF = max(2005, round(input$mainBrush$xmin))
       }
     } else {
       if(is.null(input$mainBrush$xmin)) {
-        yF = round(input$sideBrush$xmin)
+        yF = max(2005, round(input$sideBrush$xmin))
       } else {
         yF <- max(2005, min(round(input$sideBrush$xmin), round(input$mainBrush$xmin)))
       }
     }
-    
     if(is.null(input$sideBrush$xmax)) {
       if(!is.null(input$mainBrush$xmax)) {
-        yT = round(input$mainBrush$xmax)
+        yT = min(2016, round(input$mainBrush$xmax))
       }
     } else {
       if(is.null(input$mainBrush$xmax)) {
-        yT = round(input$sideBrush$xmax)
+        yT = min(2016, round(input$sideBrush$xmax))
       } else {
         yT <- min(2016, max(round(input$sideBrush$xmax), round(input$mainBrush$xmax)))
       }
     }
-
     iF <- which(transportationData$year == yF)
     iT <- which(transportationData$year == yT)
-    print(paste0(iF, '  ', iT))
     tSubset <- transportationData[iF:iT,]
+  })
+  
+  #supporting plot for ticket price
+  output$ticketPrice <- renderPlot({
     m <- mainPlotData()
     ggplot() +
-      geom_line(data=tSubset, aes(x = year, y = car_PricePerL), size=.75 ) +
-      geom_point(data=tSubset, aes(x = year, y = car_PricePerL), size=3, fill="white") +
+      scale_x_date() +
+      geom_line(data=getBrushedSubset(), aes(x = as.Date(paste0(year,'-01-01')), y = car_PricePerL), size=.75 ) +
+      geom_point(data=getBrushedSubset(), aes(x = as.Date(paste0(year,'-01-01')), y = car_PricePerL), size=3, fill="white") +
       xlab(lang[6]) +
       ylab(lang[25]) + 
+      theme_solarized_2(light = TRUE) +
+      scale_colour_solarized("blue")
+  })
+  
+  #supporting plot for fuel price
+  output$fuelPrice <- renderPlot({
+    m <- mainPlotData()
+    ggplot() +
+      scale_x_date() +
+      geom_line(data=getBrushedSubset(), aes(x =  as.Date(paste0(year,'-01-01')), y = wl_ticketPrice), size=.75 ) +
+      geom_point(data=getBrushedSubset(), aes(x =  as.Date(paste0(year,'-01-01')), y = wl_ticketPrice), size=3, fill="white") +
+      xlab(lang[6]) +
+      ylab(lang[24]) + 
       theme_solarized_2(light = TRUE) +
       scale_colour_solarized("blue")
   })
