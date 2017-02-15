@@ -36,7 +36,8 @@ lang_eng <- c("Comparison of car usage vs. public services in Vienna", "Mobility
               "Avg. price petrol/diesel per l", "Saved money per person: ",
               "Total savings: ", "Use average driven km ",
               "Or: Specify daily driven kilometers", "You could build...",
-              "with the saved money")
+              "...with the saved money", " big wind turbines ",
+              " sun energy farms with 20-kWp ", " river water plants ")
 lang <- lang_ger
 selectionStatus <- 0
 iconsize <- 36
