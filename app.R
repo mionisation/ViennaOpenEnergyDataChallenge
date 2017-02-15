@@ -18,7 +18,7 @@ lang_ger <- c("Vergleich der Benutzung öffentlicher Verkehrsmittel vs. PKW in W
               #23
 lang_eng <- c("Comparison of car usage vs. public services in Vienna", "Mobility check",
               "Choose language", "Detailed look in this selection",
-              "Plot of transportation details", "Year",
+              "Total transportation cost", "Year",
               "Price in Euro", "Or: Specify Liters per 100 Kilometers: ",
               "Types of Cost", "Cost per Year",
               "Cost per day", "Public",
@@ -28,7 +28,7 @@ lang_eng <- c("Comparison of car usage vs. public services in Vienna", "Mobility
               "Or: Specify car drivers in Vienna:", "Use total amount of licensed cars in Vienna",
               "Use average consumption of all cars", " million Euro",
               "Price in million Euro")
-lang <- lang_ger
+lang <- lang_eng
 
 # data from the energy report and other sources specified in the README.
 # Missing values were estimated via linear and loess regression
