@@ -87,20 +87,25 @@ server <- function(input, output) {
     #adjust if selection is custom value for number of cars or fuel consumption
     carNumber = input$carDrivers
     fuelConsumption = input$LitersPerKm
+    car_kmPerDay = input$drivenKmPerDay
     if(input$useFuelStatisticValues) {
       fuelConsumption = transportationData$car_consumptionPer100km
     }
     if(input$useCarStatisticValues) {
       carNumber = transportationData$car_numbers
     }
-    
-    carPricePerPerson = carMultiplier * transportationData$car_PricePerL * transportationData$car_kmPerDay * (fuelConsumption/100)
+    if(input$useKmStatisticValues) {
+      car_kmPerDay <- transportationData$car_kmPerDay
+    }
+    publicPricePerPerson <- transportationData$wl_cardsPrice * publicMultiplier
+    carPricePerPerson = carMultiplier * transportationData$car_PricePerL * car_kmPerDay * (fuelConsumption/100)
     main <- data.frame (
       year = transportationData$year,
-      publicPrice = transportationData$wl_cardsPrice * publicMultiplier,
+      publicPrice = publicPricePerPerson,
       carPrice =  carPricePerPerson,
-      publicPriceTotal = transportationData$wl_cardsPrice * publicMultiplier * transportationData$wl_cardsSold/1000000,
-      carPriceTotal = carNumber * carPricePerPerson / 1000000
+      publicPriceTotal = publicPricePerPerson * transportationData$wl_cardsSold/1000000,
+      carPriceTotal = carNumber * carPricePerPerson / 1000000,
+      publicPriceTotaTCalculatedByCarUsers = carNumber * publicPricePerPerson /1000000
     )
     
   })
@@ -163,7 +168,7 @@ server <- function(input, output) {
       iF <- which(val$year == yF)
       iT <- which(val$year == yT)
       val <- val[iF:iT,] 
-      val <- sum((val$carPriceTotal - val$publicPriceTotal))
+      val <- sum((val$carPriceTotal - val$publicPriceTotaTCalculatedByCarUsers))
     }
     paste0(lang[27], round(val, digits = 2), lang[22])
   })
@@ -286,11 +291,15 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                     }
                     h2 {
                       font-family: 'Anton', sans-serif;
-                      font-weight: 500;
-                      line-height: 1.1;
                     }
                     .checkbox label span{
                       font-weight: bold;
+                    }
+                    .inputDiv {
+                            border-top: 1px ridge #999999;
+                            #border-radius: 10px 10px 10px 10px;
+                            padding-left: 2%;
+                            margin: 1%;
                     }
                   "))
   ),
@@ -302,16 +311,19 @@ ui <- fluidPage(theme = shinytheme("flatly"),
   fluidRow(
     column( width = 2,
             #selectInput('langSel', lang[3], languageSelection, selected = "Deutsch"),
-            radioButtons(inputId = 'costType', label = lang[9], choices = c(lang[10], lang[11])),
-            helpText("_"),
-            checkboxInput(inputId = 'useFuelStatisticValues', label = lang[21], value = TRUE),
-            sliderInput(inputId = 'LitersPerKm', label = lang[8], min = 2, max = 10, value = 8, step = 0.5 ),
-            helpText("_"),
-            checkboxInput(inputId = 'useKmStatisticValues', label = lang[28], value = TRUE),
-            sliderInput(inputId = 'drivenKmPerDay', label = lang[29], min = 0, max = 100, value = 32, step = 1 ),
-            helpText("_"),
-            checkboxInput(inputId = 'useCarStatisticValues', label = lang[20], value = TRUE),
-            sliderInput(inputId = 'carDrivers', label = lang[19], min = 0, max = 800000, value = 680000, step = 10000 )
+            selectInput(inputId = 'costType', label = lang[9], choices = c(lang[10], lang[11])),
+            div( class="inputDiv",
+                 checkboxInput(inputId = 'useFuelStatisticValues', label = lang[21], value = TRUE),
+                 sliderInput(inputId = 'LitersPerKm', label = lang[8], min = 2, max = 10, value = 8, step = 0.5 )
+            ),
+            div( class="inputDiv",
+                 checkboxInput(inputId = 'useKmStatisticValues', label = lang[28], value = TRUE),
+                 sliderInput(inputId = 'drivenKmPerDay', label = lang[29], min = 0, max = 100, value = 32, step = 1 )
+            ),
+            div( class="inputDiv",
+                checkboxInput(inputId = 'useCarStatisticValues', label = lang[20], value = TRUE),
+                sliderInput(inputId = 'carDrivers', label = lang[19], min = 0, max = 800000, value = 680000, step = 10000 )
+            )
     ),
     
     # Show a plot of the generated distribution
