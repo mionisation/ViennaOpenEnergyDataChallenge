@@ -14,8 +14,9 @@ lang_ger <- c("Vergleich der Benutzung öffentlicher Verkehrsmittel vs. PKW in W
               'Selektierte Jahre: ', "Transport pro Person",
               "Oder: Anzahl der Autofahrer in Wien angeben:", "Verwende totale PKW-Zulassungen in Wien",
               "Verwende Durchschnittsverbrauch", " Millionen Euro",
-              "Preis in Millionen Euro")
-              #23
+              "Preis in Millionen Euro", "Preis Einzelfahrschein",
+              "Preis Benzin/Diesel")
+              #25
 lang_eng <- c("Comparison of car usage vs. public services in Vienna", "Mobility check",
               "Choose language", "Detailed look in this selection",
               "Total transportation cost", "Year",
@@ -27,8 +28,10 @@ lang_eng <- c("Comparison of car usage vs. public services in Vienna", "Mobility
               "Selected years: ", "Transport per person",
               "Or: Specify car drivers in Vienna:", "Use total amount of licensed cars in Vienna",
               "Use average consumption of all cars", " million Euro",
-              "Price in million Euro")
-lang <- lang_eng
+              "Price in million Euro", "Price Single trip",
+              "Avg. price petrol/diesel")
+lang <- lang_ger
+selectionStatus <- 0
 
 # data from the energy report and other sources specified in the README.
 # Missing values were estimated via linear and loess regression
@@ -41,9 +44,9 @@ transportationData <- data.frame (
   car_PricePerL = c(0.83,	0.89,	0.93,	1.09,	0.90,	1.06,	1.28,	1.38,	1.35,	1.32,	1.22, 1.17),
   car_consumptionPer100km = c(7.4, 7.4, 7.5, 7.5, 7.3, 7.3, 7.3, 7.3, 7.1, 7.1, 7.1, 7.1),
   car_numbers = c( 655806, 658081, 657426, 657192, 663926, 669279, 674526, 679492, 681413, 683258, 685570, 687243),
+  wl_ticketPrice = c(1.5, 1.5, 1.7, 1.7, 1.8, 1.8, 1.8, 2, 2.1, 2.2, 2.2, 2.2),
   na = c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA)
 )
-
 
 languageSelection <- c("English","Deutsch")
 names(languageSelection) = c("English", "Deutsch")
@@ -147,7 +150,7 @@ server <- function(input, output) {
   })
   ##end text output for hovering / brushing
   
-
+  ## main plot for per person price
   output$mainPlot <- renderPlot({
     m <- mainPlotData()
     ggplot() +
@@ -163,6 +166,7 @@ server <- function(input, output) {
       scale_colour_solarized("blue")
   })
   
+  ## plot for total price
   output$sidePlot <- renderPlot({
     m <- mainPlotData()
     ggplot() +
@@ -174,6 +178,61 @@ server <- function(input, output) {
       xlab(lang[6]) +
       ylab(lang[23]) + 
       expand_limits(y=0) +
+      theme_solarized_2(light = TRUE) +
+      scale_colour_solarized("blue")
+  })
+  
+  #supporting plot for fuel price
+  output$fuelPrice <- renderPlot({
+    m <- mainPlotData()
+    ggplot() +
+      geom_line(data=transportationData, aes(x = year, y = wl_ticketPrice), size=.75 ) +
+      geom_point(data=transportationData, aes(x = year, y = wl_ticketPrice), size=3, fill="white") +
+      xlab(lang[6]) +
+      ylab(lang[24]) + 
+      theme_solarized_2(light = TRUE) +
+      scale_colour_solarized("blue")
+  })
+  
+  
+  #supporting plot for ticket price
+  output$ticketPrice <- renderPlot({
+    yF = 2005
+    yT = 2016
+    if(is.null(input$sideBrush$xmin)) {
+      if(!is.null(input$mainBrush$xmin)) {
+        yF = round(input$mainBrush$xmin)
+      }
+    } else {
+      if(is.null(input$mainBrush$xmin)) {
+        yF = round(input$sideBrush$xmin)
+      } else {
+        yF <- max(2005, min(round(input$sideBrush$xmin), round(input$mainBrush$xmin)))
+      }
+    }
+    
+    if(is.null(input$sideBrush$xmax)) {
+      if(!is.null(input$mainBrush$xmax)) {
+        yT = round(input$mainBrush$xmax)
+      }
+    } else {
+      if(is.null(input$mainBrush$xmax)) {
+        yT = round(input$sideBrush$xmax)
+      } else {
+        yT <- min(2016, max(round(input$sideBrush$xmax), round(input$mainBrush$xmax)))
+      }
+    }
+
+    iF <- which(transportationData$year == yF)
+    iT <- which(transportationData$year == yT)
+    print(paste0(iF, '  ', iT))
+    tSubset <- transportationData[iF:iT,]
+    m <- mainPlotData()
+    ggplot() +
+      geom_line(data=tSubset, aes(x = year, y = car_PricePerL), size=.75 ) +
+      geom_point(data=tSubset, aes(x = year, y = car_PricePerL), size=3, fill="white") +
+      xlab(lang[6]) +
+      ylab(lang[25]) + 
       theme_solarized_2(light = TRUE) +
       scale_colour_solarized("blue")
   })
@@ -234,10 +293,25 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                          nullOutside = FALSE
                        )
             ),    
-            helpText(lang[4]),
-            textOutput("hoverYear"),
-            textOutput("hoverPrice"),
-            textOutput("selectYear")
+            fluidRow(
+              column( width = 1
+              ),
+              column( width = 5,
+                      helpText(lang[4]),
+                      textOutput("hoverYear"),
+                      textOutput("hoverPrice"),
+                      textOutput("selectYear")
+              )
+            ),
+            fluidRow(
+              column( width = 5,
+                      plotOutput(outputId = "fuelPrice", height = 200)
+              ),
+              column( width = 5,
+                      plotOutput(outputId = "ticketPrice", height = 200)
+              )
+            )#include: how much money/co2 saved compared to how many car owners drive per day
+            #slider: select number of drivers: from 0 to 500.000
     ),
     
     column( width = 5,
@@ -257,14 +331,16 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                  nullOutside = FALSE
                )
     ), 
-    helpText(lang[4]),
-    textOutput("hoverYearTotal"),
-    textOutput("hoverPriceTotal"),
-    textOutput("selectYearTotal"),
-    plotOutput(outputId = "fuelPrice"),
-    plotOutput(outputId = "ticketPrice")
-    #include: how much money/co2 saved compared to how many car owners drive per day
-    #slider: select number of drivers: from 0 to 500.000
+    fluidRow(
+      column( width = 1
+      ),
+      column( width = 5,
+              helpText(lang[4]),
+              textOutput("hoverYearTotal"),
+              textOutput("hoverPriceTotal"),
+              textOutput("selectYearTotal")
+      )
+    )
     ),
     
     position = "right",
