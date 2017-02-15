@@ -15,8 +15,10 @@ lang_ger <- c("Vergleich der Benutzung öffentlicher Verkehrsmittel vs. PKW in W
               "Oder: Anzahl der Autofahrer in Wien angeben:", "Verwende totale PKW-Zulassungen in Wien",
               "Verwende Durchschnittsverbrauch", " Millionen Euro",
               "Preis in Millionen Euro", "Preis Einzelfahrschein",
-              "Preis Benzin/Diesel")
-              #25
+              "Preis Benzin/Diesel", "Gespartes Geld: ",
+              "Gesamteinsparungen: ", "Verwende gefahrene Durchschnittsstrecken",
+              "Oder: Gefahrene Tages-Km angeben")
+              #29
 lang_eng <- c("Comparison of car usage vs. public services in Vienna", "Mobility check",
               "Choose language", "Detailed look in this selection",
               "Total transportation cost", "Year",
@@ -29,7 +31,9 @@ lang_eng <- c("Comparison of car usage vs. public services in Vienna", "Mobility
               "Or: Specify car drivers in Vienna:", "Use total amount of licensed cars in Vienna",
               "Use average consumption of all cars", " million Euro",
               "Price in million Euro", "Price Single trip",
-              "Avg. price petrol/diesel")
+              "Avg. price petrol/diesel", "Saved money per person: ",
+              "Total savings: ", "Use average driven km ",
+              "Or: Specify daily driven kilometers")
 lang <- lang_ger
 selectionStatus <- 0
 
@@ -148,6 +152,36 @@ server <- function(input, output) {
     }
     paste0(lang[15], round(val, digits = 2), lang[22])
   })
+  #todo
+  output$savedMoneyTotal <- renderText({
+    val <- mainPlotData()
+    if(is.null(input$sideBrush$xmin)){
+      val <- 0
+    } else {
+      yF <- max(2005, round(input$sideBrush$xmin))
+      yT <- min(2016, round(input$sideBrush$xmax))
+      iF <- which(val$year == yF)
+      iT <- which(val$year == yT)
+      val <- val[iF:iT,] 
+      val <- sum((val$carPriceTotal - val$publicPriceTotal))
+    }
+    paste0(lang[27], round(val, digits = 2), lang[22])
+  })
+  output$savedMoney <- renderText({
+    val <- mainPlotData()
+    if(is.null(input$mainBrush$xmin)){
+      val <- 0
+    } else {
+      yF <- max(2005, round(input$mainBrush$xmin))
+      yT <- min(2016, round(input$mainBrush$xmax))
+      iF <- which(val$year == yF)
+      iT <- which(val$year == yT)
+      val <- val[iF:iT,] 
+      val <- sum((val$carPrice - val$publicPrice))
+    }
+    
+    paste0(lang[26], round(val, digits = 2), " Euro")
+  })
   ##end text output for hovering / brushing
   
   ## main plot for per person price
@@ -246,12 +280,12 @@ server <- function(input, output) {
 ui <- fluidPage(theme = shinytheme("flatly"),
                 tags$head(
                   tags$style(HTML("
-                    @import url('//fonts.googleapis.com/css?family=Lobster|Cabin:400,700');
+                    @import url('//fonts.googleapis.com/css?family=Anton');
                     body {
                       background-color: #fdf6e3;;
                     }
                     h2 {
-                      font-family: 'Lobster', cursive;
+                      font-family: 'Anton', sans-serif;
                       font-weight: 500;
                       line-height: 1.1;
                     }
@@ -273,6 +307,9 @@ ui <- fluidPage(theme = shinytheme("flatly"),
             checkboxInput(inputId = 'useFuelStatisticValues', label = lang[21], value = TRUE),
             sliderInput(inputId = 'LitersPerKm', label = lang[8], min = 2, max = 10, value = 8, step = 0.5 ),
             helpText("_"),
+            checkboxInput(inputId = 'useKmStatisticValues', label = lang[28], value = TRUE),
+            sliderInput(inputId = 'drivenKmPerDay', label = lang[29], min = 0, max = 100, value = 32, step = 1 ),
+            helpText("_"),
             checkboxInput(inputId = 'useCarStatisticValues', label = lang[20], value = TRUE),
             sliderInput(inputId = 'carDrivers', label = lang[19], min = 0, max = 800000, value = 680000, step = 10000 )
     ),
@@ -280,7 +317,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
     # Show a plot of the generated distribution
     column( width = 5,
             helpText(lang[18]),
-            plotOutput(outputId = "mainPlot",
+            plotOutput(outputId = "mainPlot", height = 300,
                        brush = brushOpts(
                           id = "mainBrush",
                           delayType = 'debounce',
@@ -301,24 +338,30 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                       helpText(lang[4]),
                       textOutput("hoverYear"),
                       textOutput("hoverPrice"),
-                      textOutput("selectYear")
+                      helpText("-")
+
+              ),column( width = 6,
+                        helpText("-"),
+                        textOutput("selectYear"),
+                        textOutput("savedMoney"),
+                        helpText("-")
               )
+              
             ),
             fluidRow(
               column( width = 5,
-                      plotOutput(outputId = "fuelPrice", height = 200)
+                      plotOutput(outputId = "fuelPrice", height = 180)
               ),
               column( width = 5,
-                      plotOutput(outputId = "ticketPrice", height = 200)
+                      plotOutput(outputId = "ticketPrice", height = 180)
               )
             )#include: how much money/co2 saved compared to how many car owners drive per day
-            #slider: select number of drivers: from 0 to 500.000
+            
     ),
     
     column( width = 5,
-    #todo: include here selection plots
     helpText(lang[5]),
-    plotOutput(outputId = "sidePlot",
+    plotOutput(outputId = "sidePlot",height = 300,
                brush = brushOpts(
                  id = "sideBrush",
                  delayType = 'debounce',
@@ -339,7 +382,14 @@ ui <- fluidPage(theme = shinytheme("flatly"),
               helpText(lang[4]),
               textOutput("hoverYearTotal"),
               textOutput("hoverPriceTotal"),
-              textOutput("selectYearTotal")
+              helpText("-")
+              
+      ),
+      column( width = 6,
+              helpText("-"),
+              textOutput("selectYearTotal"),
+              textOutput("savedMoneyTotal"),
+              helpText("-")
       )
     )
     ),
