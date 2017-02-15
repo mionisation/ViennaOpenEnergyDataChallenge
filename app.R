@@ -157,7 +157,9 @@ server <- function(input, output) {
     }
     paste0(lang[15], round(val, digits = 2), lang[22])
   })
-  #todo
+  #todo: 1) css border, adjust sizes
+  # 2) add icons for energy facilities
+  # 3) add icons from data people
   output$savedMoneyTotal <- renderText({
     val <- mainPlotData()
     if(is.null(input$sideBrush$xmin)){
@@ -291,16 +293,21 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                     }
                     h2 {
                       font-family: 'Anton', sans-serif;
+                      font-size: 28px;
                     }
                     .checkbox label span{
                       font-weight: bold;
                     }
                     .inputDiv {
-                            border-top: 1px ridge #999999;
-                            #border-radius: 10px 10px 10px 10px;
+                            border-top: 0.25px ridge #999999;
                             padding-left: 2%;
-                            margin: 1%;
                     }
+                    .brushInformation {
+                            
+                            padding-bottom: 5%;
+                            margin-bottom: 9%;
+                    }
+
                   "))
   ),
   
@@ -344,21 +351,19 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                        )
             ),    
             fluidRow(
-              column( width = 1
-              ),
-              column( width = 5,
-                      helpText(lang[4]),
-                      textOutput("hoverYear"),
-                      textOutput("hoverPrice"),
-                      helpText("-")
-
-              ),column( width = 6,
-                        helpText("-"),
-                        textOutput("selectYear"),
-                        textOutput("savedMoney"),
-                        helpText("-")
-              )
               
+                column( width = 1
+                ),
+                column( width = 5,
+                        helpText(lang[4]),
+                        textOutput("hoverYear"),
+                        textOutput("hoverPrice")
+  
+                ),column( width = 6,
+                          helpText("-"),
+                          textOutput("selectYear"),
+                          div(class="brushInformation",textOutput("savedMoney"))
+                )
             ),
             fluidRow(
               column( width = 5,
@@ -388,21 +393,20 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                )
     ), 
     fluidRow(
-      column( width = 1
-      ),
-      column( width = 5,
-              helpText(lang[4]),
-              textOutput("hoverYearTotal"),
-              textOutput("hoverPriceTotal"),
-              helpText("-")
-              
-      ),
-      column( width = 6,
-              helpText("-"),
-              textOutput("selectYearTotal"),
-              textOutput("savedMoneyTotal"),
-              helpText("-")
-      )
+        column( width = 1
+        ),
+        column( width = 5,
+                helpText(lang[4]),
+                textOutput("hoverYearTotal"),
+                textOutput("hoverPriceTotal")
+                
+        ),
+        column( width = 6,
+                helpText("-"),
+                textOutput("selectYearTotal"),
+                div(class="brushInformation",textOutput("savedMoneyTotal"))
+        )
+
     )
     ),
     
