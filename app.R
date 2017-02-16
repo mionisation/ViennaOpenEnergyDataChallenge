@@ -38,7 +38,7 @@ lang_eng <- c("Comparison of car usage vs. public services in Vienna", "Mobility
               "Or: Specify daily driven kilometers", "You could build...",
               "...with the saved money", " big wind turbines ",
               " sun energy farms with 20-kWp ", " river water plants ")
-lang <- lang_ger
+lang <- lang_eng
 selectionStatus <- 0
 iconsize <- 36
 
@@ -182,15 +182,16 @@ server <- function(input, output) {
   getSavingsMoney <- reactive({
     val <- mainPlotData()
     if(is.null(input$sideBrush$xmin)){
-      val <- 0
+      yF <- 2005
+      yT <- 2016
     } else {
       yF <- max(2005, round(input$sideBrush$xmin))
       yT <- min(2016, round(input$sideBrush$xmax))
-      iF <- which(val$year == yF)
-      iT <- which(val$year == yT)
-      val <- val[iF:iT,] 
-      val <- sum((val$carPriceTotal - val$publicPriceTotaTCalculatedByCarUsers))
     }
+    iF <- which(val$year == yF)
+    iT <- which(val$year == yT)
+    val <- val[iF:iT,] 
+    val <- sum((val$carPriceTotal - val$publicPriceTotaTCalculatedByCarUsers))
     val
   })
   
@@ -200,15 +201,16 @@ server <- function(input, output) {
   output$savedMoney <- renderText({
     val <- mainPlotData()
     if(is.null(input$mainBrush$xmin)){
-      val <- 0
+      yF <- 2005
+      yT <- 2016
     } else {
       yF <- max(2005, round(input$mainBrush$xmin))
       yT <- min(2016, round(input$mainBrush$xmax))
-      iF <- which(val$year == yF)
-      iT <- which(val$year == yT)
-      val <- val[iF:iT,] 
-      val <- sum((val$carPrice - val$publicPrice))
-    }
+   }
+    iF <- which(val$year == yF)
+    iT <- which(val$year == yT)
+    val <- val[iF:iT,] 
+    val <- sum((val$carPrice - val$publicPrice))
     
     paste0(lang[26], round(val, digits = 2), " Euro")
   })
