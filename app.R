@@ -19,8 +19,9 @@ lang_ger <- c("Vergleich der Benutzung öffentlicher Verkehrsmittel vs. PKW in W
               "Gesamteinsparungen: ", "Verwende gefahrene Durchschnittsstrecken",
               "Oder: Gefahrene Tages-Km angeben", "Wenn die Autofahrer mit den Öffis gefahren wären, hätte man mit dem gesparten Geld...",
               "... errichten können"," große Windkraftanlagen ",
-              " Photovoltaikanlagen mit 20-kWp "," Kleinwasserkraftwerke (Neue Donau) ")
-              #34
+              " Photovoltaikanlagen mit 20-kWp "," Kleinwasserkraftwerke (Neue Donau) ",
+              "Datenquelle: Magistrat Wien MA 20","https://www.data.gv.at/katalog/dataset/stadt-wien_energieberichtderstadtwien")
+              #35
 lang_eng <- c("Comparison of car usage vs. public services in Vienna", "Mobility check",
               "Choose language", "Detailed look in this selection",
               "Total transportation cost", "Year",
@@ -37,7 +38,8 @@ lang_eng <- c("Comparison of car usage vs. public services in Vienna", "Mobility
               "Total savings: ", "Use average driven km ",
               "Or: Specify daily driven kilometers", "You could build...",
               "...with the saved money", " big wind turbines ",
-              " sun energy farms with 20-kWp ", " river water plants ")
+              " sun energy farms with 20-kWp ", " river water plants ",
+              "Datasource: Magistrate Vienna MA 20", "https://www.data.gv.at/katalog/dataset/stadt-wien_energieberichtderstadtwien")
 lang <- lang_eng
 selectionStatus <- 0
 iconsize <- 36
@@ -453,7 +455,8 @@ ui <- fluidPage(theme = shinytheme("flatly"),
     
     position = "right",
     fluid = TRUE
-  )
+  ),
+  fluidRow( a(lang[35], href=lang[36]))
 )
 
 ## end UI
